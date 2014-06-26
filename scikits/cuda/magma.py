@@ -36,7 +36,10 @@ if _load_err:
 _libmagma.magma_strerror.restype = ctypes.c_char_p
 _libmagma.magma_strerror.argtypes = [ctypes.c_int]
 
-_magma_version = (-1, -1, -1)
+# MAGMA below 1.4.0 uses "L" and "U" to select upper/lower triangular
+# matrices, MAGMA 1.5+ uses numeric constants. This dict will be filled
+# in magma_init() and will convert between the two modes accordingly
+_uplo_conversion = {}
 
 
 def magma_strerror(error):
@@ -247,10 +250,15 @@ def magma_init():
     """
     Initialize MAGMA.
     """
-    global _magma_version
+    global _uplo_conversion
     status = _libmagma.magma_init()
     magmaCheckStatus(status)
-    _magma_version = magma_version()
+    v = magma_version()
+    if v >= (1, 5, 0):
+        _uplo_conversion.update({"L": 122, "l": 122, "U": 121, "u": 121})
+    else:
+       _uplo_conversion.update({"L": "L", "l": "l", "U": "u", "u": "u"})
+
 
 _libmagma.magma_finalize.restype = int
 
@@ -1464,12 +1472,14 @@ _libmagma.magma_sposv_gpu.argtypes = [ctypes.c_int,
                                   ctypes.c_void_p,
                                   ctypes.c_int,
                                   ctypes.c_void_p]
+
+
 def magma_sposv_gpu(uplo, n, nhrs, a_gpu, lda, b_gpu, ldb):
     """
     Solve linear system with positive semidefinite coefficient matrix.
     """
 
-
+    uplo = _uplo_conversion[uplo]
     info = ctypes.c_int()
     status = _libmagma.magma_sposv_gpu(uplo, n, nhrs, int(a_gpu), lda,
                                        int(b_gpu), ldb, ctypes.byref(info))
