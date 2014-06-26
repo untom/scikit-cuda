@@ -50,167 +50,100 @@ def magma_strerror(error):
     return _libmagma.magma_strerror(error)
 
 
-class magmaError(Exception):
-    try:
-        __doc__ = magma_strerror(-100)
-    except:
-        pass
+class MagmaError(Exception):
+	def __init__(self, status, info=None):
+		self._status = status
+		self._info = info
+		errstr = "%s (Code: %d)" % (magma_strerror(status), status)
+		super(MagmaError,self).__init__(errstr)
+
+
+class MagmaNotInitializedError(MagmaError):
     pass
 
 
-class magmaNotInitialized(magmaError):
-    try:
-        __doc__ = magma_strerror(-101)
-    except:
-        pass
+class MagmaReinitializedError(MagmaError):
     pass
 
 
-class magmaReinitialized(magmaError):
-    try:
-        __doc__ = magma_strerror(-102)
-    except:
-        pass
+class MagmaNotSupportedError(MagmaError):
     pass
 
 
-class magmaNotSupported(magmaError):
-    try:
-        __doc__ = magma_strerror(-103)
-    except:
-        pass
+class MagmaIllegalValueError(MagmaError):
     pass
 
 
-class magmaIllegalValue(magmaError):
-    try:
-        __doc__ = magma_strerror(-104)
-    except:
-        pass
+class MagmaIllegalValueError(MagmaError):
     pass
 
 
-class magmaIllegalValue(magmaError):
-    try:
-        __doc__ = magma_strerror(-104)
-    except:
-        pass
+class MagmaNotFoundError(MagmaError):
     pass
 
 
-class magmaNotFound(magmaError):
-    try:
-        __doc__ = magma_strerror(-105)
-    except:
-        pass
+class MagmaAllocationError(MagmaError):
     pass
 
 
-class magmaAllocation(magmaError):
-    try:
-        __doc__ = magma_strerror(-106)
-    except:
-        pass
+class MagmaInternalLimitError(MagmaError):
     pass
 
 
-class magmaInternalLimit(magmaError):
-    try:
-        __doc__ = magma_strerror(-107)
-    except:
-        pass
+class MagmaUnallocatedError(MagmaError):
     pass
 
 
-class magmaUnallocated(magmaError):
-    try:
-        __doc__ = magma_strerror(-108)
-    except:
-        pass
+class MagmaFilesystemError(MagmaError):
     pass
 
 
-class magmaFilesystem(magmaError):
-    try:
-        __doc__ = magma_strerror(-109)
-    except:
-        pass
+class MagmaUnexpectedError(MagmaError):
     pass
 
 
-class magmaUnexpected(magmaError):
-    try:
-        __doc__ = magma_strerror(-110)
-    except:
-        pass
+class MagmaSequenceFlushedError(MagmaError):
     pass
 
 
-class magmaSequenceFlushed(magmaError):
-    try:
-        __doc__ = magma_strerror(-111)
-    except:
-        pass
+class MagmaHostAllocError(MagmaError):
     pass
 
 
-class magmaHostAlloc(magmaError):
-    try:
-        __doc__ = magma_strerror(-112)
-    except:
-        pass
+class MagmaDeviceAllocError(MagmaError):
     pass
 
 
-class magmaDeviceAlloc(magmaError):
-    try:
-        __doc__ = magma_strerror(-113)
-    except:
-        pass
+class MagmaCUDAStreamError(MagmaError):
     pass
 
 
-class magmaCUDAStream(magmaError):
-    try:
-        __doc__ = magma_strerror(-114)
-    except:
-        pass
+class MagmaInvalidPtrError(MagmaError):
     pass
 
 
-class magmaInvalidPtr(magmaError):
-    try:
-        __doc__ = magma_strerror(-115)
-    except:
-        pass
+class MagmaUnknownError(MagmaError):
     pass
 
-
-class magmaUnknown(magmaError):
-    try:
-        __doc__ = magma_strerror(-116)
-    except:
-        pass
-    pass
 
 magmaExceptions = {
-    -100: magmaError,
-    -101: magmaNotInitialized,
-    -102: magmaReinitialized,
-    -103: magmaNotSupported,
-    -104: magmaIllegalValue,
-    -105: magmaNotFound,
-    -106: magmaAllocation,
-    -107: magmaInternalLimit,
-    -108: magmaUnallocated,
-    -109: magmaFilesystem,
-    -110: magmaUnexpected,
-    -111: magmaSequenceFlushed,
-    -112: magmaHostAlloc,
-    -113: magmaDeviceAlloc,
-    -114: magmaCUDAStream,
-    -115: magmaInvalidPtr,
-    -116: magmaUnknown
+    -100: MagmaError,
+    -101: MagmaNotInitializedError,
+    -102: MagmaReinitializedError,
+    -103: MagmaNotSupportedError,
+    -104: MagmaIllegalValueError,
+    -105: MagmaNotFoundError,
+    -106: MagmaAllocationError,
+    -107: MagmaInternalLimitError,
+    -108: MagmaUnallocatedError,
+    -109: MagmaFilesystemError,
+    -110: MagmaUnexpectedError,
+    -111: MagmaSequenceFlushedError,
+    -112: MagmaHostAllocError,
+    -113: MagmaDeviceAllocError,
+    -114: MagmaCUDAStreamError,
+    -115: MagmaInvalidPtrError,
+    -116: MagmaUnknownError
 }
 
 
@@ -221,12 +154,12 @@ def magmaCheckStatus(status):
 
     if status != 0:
         try:
-            raise magmaExceptions[status]
+            raise magmaExceptions[status](status)
         except KeyError:
-            raise magmaError
+            raise MagmaError(status)
+
 
 # Utility functions:
-
 _libmagma.magma_version.argtypes = [ctypes.c_void_p,
     ctypes.c_void_p, ctypes.c_void_p]
 
