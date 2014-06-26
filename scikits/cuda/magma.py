@@ -36,6 +36,8 @@ if _load_err:
 _libmagma.magma_strerror.restype = ctypes.c_char_p
 _libmagma.magma_strerror.argtypes = [ctypes.c_int]
 
+_magma_version = (-1, -1, -1)
+
 
 def magma_strerror(error):
     """
@@ -222,6 +224,22 @@ def magmaCheckStatus(status):
 
 # Utility functions:
 
+_libmagma.magma_version.argtypes = [ctypes.c_void_p,
+    ctypes.c_void_p, ctypes.c_void_p]
+
+
+def magma_version():
+    """
+    Get MAGMA version.
+    """
+    majv = ctypes.c_int()
+    minv = ctypes.c_int()
+    micv = ctypes.c_int()
+    _libmagma.magma_version(ctypes.byref(majv),
+        ctypes.byref(minv), ctypes.byref(micv))
+    return (majv.value, minv.value, micv.value)
+
+
 _libmagma.magma_init.restype = int
 
 
@@ -229,9 +247,10 @@ def magma_init():
     """
     Initialize MAGMA.
     """
-
+    global _magma_version
     status = _libmagma.magma_init()
     magmaCheckStatus(status)
+    _magma_version = magma_version()
 
 _libmagma.magma_finalize.restype = int
 
@@ -1432,4 +1451,26 @@ def magma_sgesvd(jobu, jobvt, m, n, a, lda, s, u, ldu, vt, ldvt, work, lwork,
                                     int(a), lda, int(s), int(u), ldu,
                                     int(vt), ldvt, int(work), lwork,
                                     int(rwork), int(info))
+    magmaCheckStatus(status)
+
+
+# SPOSV, DPOSV, CPOSV, ZPOSV
+_libmagma.magma_sposv_gpu.restype = int
+_libmagma.magma_sposv_gpu.argtypes = [ctypes.c_int,
+                                  ctypes.c_int,
+                                  ctypes.c_int,
+                                  ctypes.c_void_p,
+                                  ctypes.c_int,
+                                  ctypes.c_void_p,
+                                  ctypes.c_int,
+                                  ctypes.c_void_p]
+def magma_sposv_gpu(uplo, n, nhrs, a_gpu, lda, b_gpu, ldb):
+    """
+    Solve linear system with positive semidefinite coefficient matrix.
+    """
+
+
+    info = ctypes.c_int()
+    status = _libmagma.magma_sposv_gpu(uplo, n, nhrs, int(a_gpu), lda,
+                                       int(b_gpu), ldb, ctypes.byref(info))
     magmaCheckStatus(status)
