@@ -8,6 +8,7 @@ import sys
 import ctypes
 import atexit
 import numpy as np
+import warnings
 
 import cuda
 
@@ -1351,40 +1352,44 @@ def magma_sgetrf(m, n, A, lda, ipiv, info):
     magmaCheckStatus(status)
 
 # SGETRF2, DGETRF2, CGETRF2, ZGETRF2
-_libmagma.magma_sgetrf2.restype = int
-_libmagma.magma_sgetrf2.argtypes = [ctypes.c_int,
-                                    ctypes.c_int,
-                                    ctypes.c_void_p,
-                                    ctypes.c_int,
-                                    ctypes.c_void_p,
-                                    ctypes.c_void_p]
+try:
+    _libmagma.magma_sgetrf2.restype = int
+    _libmagma.magma_sgetrf2.argtypes = [ctypes.c_int,
+                                        ctypes.c_int,
+                                        ctypes.c_void_p,
+                                        ctypes.c_int,
+                                        ctypes.c_void_p,
+                                        ctypes.c_void_p]
 
 
-def magma_sgetrf2(m, n, A, lda, ipiv, info):
-    """
-    LU factorization (multi-GPU).
-    """
+    def magma_sgetrf2(m, n, A, lda, ipiv, info):
+        """
+        LU factorization (multi-GPU).
+        """
 
-    status = _libmagma.magma_sgetrf2(m, n, int(A), lda,
-                                     int(ipiv), int(info))
-    magmaCheckStatus(status)
+        status = _libmagma.magma_sgetrf2(m, n, int(A), lda,
+                                         int(ipiv), int(info))
+        magmaCheckStatus(status)
 
-# SGEEV, DGEEV, CGEEV, ZGEEV
-_libmagma.magma_sgeev.restype = int
-_libmagma.magma_sgeev.argtypes = [ctypes.c_char,
-                                  ctypes.c_char,
-                                  ctypes.c_int,
-                                  ctypes.c_void_p,
-                                  ctypes.c_int,
-                                  ctypes.c_void_p,
-                                  ctypes.c_void_p,
-                                  ctypes.c_int,
-                                  ctypes.c_void_p,
-                                  ctypes.c_int,
-                                  ctypes.c_void_p,
-                                  ctypes.c_int,
-                                  ctypes.c_void_p,
-                                  ctypes.c_void_p]
+    # SGEEV, DGEEV, CGEEV, ZGEEV
+    _libmagma.magma_sgeev.restype = int
+    _libmagma.magma_sgeev.argtypes = [ctypes.c_char,
+                                      ctypes.c_char,
+                                      ctypes.c_int,
+                                      ctypes.c_void_p,
+                                      ctypes.c_int,
+                                      ctypes.c_void_p,
+                                      ctypes.c_void_p,
+                                      ctypes.c_int,
+                                      ctypes.c_void_p,
+                                      ctypes.c_int,
+                                      ctypes.c_void_p,
+                                      ctypes.c_int,
+                                      ctypes.c_void_p,
+                                      ctypes.c_void_p]
+except AttributeError:
+    pass
+    #warnings.warn("magma_sgetrf2 is unavailable")
 
 
 def magma_sgeev(jobvl, jobvr, n, a, lda,
